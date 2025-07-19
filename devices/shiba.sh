@@ -8,7 +8,8 @@ DEVICE_REPO="https://github.com/GrapheneOS/device_google_shusky.git"
 
 # Build the kernel from source (Tensor G3, GKI 6.1) with full LTO and without
 # downloading Google‑supplied prebuilt GKI images.
-KERNEL_BUILD_COMMAND="./build_shusky.sh --config=no_download_gki --config=no_download_gki_fips140 --lto=full"
+# ATTENTION!: The following are removed from Pixel 8 onwards (and maybe earlier as well): --config=no_download_gki --config=no_download_gki_fips140
+KERNEL_BUILD_COMMAND="./build_shusky.sh --lto=full"
 
 # Pre‑built kernel (Image.lz4, modules etc.) from the matching GrapheneOS tag
 # – this is only used to extract the stock defconfig so we can spoof ABI checks.
