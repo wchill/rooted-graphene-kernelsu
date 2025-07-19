@@ -5,6 +5,9 @@ GRAPHENE_BRANCH ?= stable
 KEYS_DIR ?= /dev/shm/graphene-keys
 MAX_CPU_PERCENT ?= 100
 MAX_MEM_PERCENT ?= 100
+KRAM ?= 1                 # enable RAM build
+KRAM_SIZE ?= 40G          # tmpfs size; adjust if you patch more drivers
+
 
 CPU_LIMIT := $(shell echo $$(( $(shell nproc --all) * $(MAX_CPU_PERCENT) / 100 )))
 MEM_LIMIT := $(shell echo "$$(( $(shell free -m | awk '/^Mem:/{print $$2}') * $(MAX_MEM_PERCENT) / 100 ))m")
@@ -37,6 +40,8 @@ build-kernel:
 		--memory="$(MEM_LIMIT)" \
 		--pids-limit=0 \
 		-v "$(PWD)":/src:Z \
+		--env KRAM="$(KRAM)" \
+		--env KRAM_SIZE="$(KRAM_SIZE)" \
 		-w /src \
 		buildrom \
 		/bin/bash /src/scripts/2_build_kernel.sh $(DEVICE)
