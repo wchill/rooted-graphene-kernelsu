@@ -2,7 +2,7 @@
 
 # optional inputs for CPU and memory limits (defaults to 100% of available resources)
 GRAPHENE_BRANCH ?= stable
-KEYS_DIR ?= $(HOME)/.avbroot
+KEYS_DIR ?= /dev/shm/graphene-keys
 MAX_CPU_PERCENT ?= 100
 MAX_MEM_PERCENT ?= 100
 
