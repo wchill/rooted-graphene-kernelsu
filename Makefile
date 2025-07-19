@@ -48,6 +48,7 @@ build-rom:
 		--cpus="$(CPU_LIMIT)" \
 		--memory="$(MEM_LIMIT)" \
 		--pids-limit=0 \
+		--env USE_CCACHE=0 \
 		-v "$(PWD)":/src:Z \
 		-w /src \
 		buildrom \
