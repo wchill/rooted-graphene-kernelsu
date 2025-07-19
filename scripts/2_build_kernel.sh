@@ -26,18 +26,8 @@ echo "GrapheneOS Release: ${GRAPHENE_RELEASE}"
 
 # fetch kernel sources
 echo "Creating and entering kernel directory..."
-echo "Creating and entering kernel directory..."
-if [[ "${KRAM}" == "1" ]]; then
-    # use /dev/shm inside the container (already a tmpfs)
-    KRNL_DIR=/dev/shm/kernel-src
-    mkdir -p "${KRNL_DIR}"
-    pushd "${KRNL_DIR}" || exit
-    echo "Using tmpfs at ${KRNL_DIR} (size=${KRAM_SIZE:-40G})"
-else
-    mkdir -p kernel/
-    pushd kernel/ || exit
-fi
-
+mkdir -p kernel/
+pushd kernel/ || exit
   echo "Initializing kernel repository from ${KERNEL_REPO}..."
   # sync kernel sources
   repo init -u "${KERNEL_REPO}" -b "refs/tags/${GRAPHENE_RELEASE}" --depth=1 --git-lfs
@@ -101,10 +91,6 @@ fi
   echo "6. Applying 'clean kernel version' patch..."
   patch -p1 < "../patches/0004-clean-kernel-version.patch"
 
-  # place ALL build objects in RAM as well
-  export OUT_DIR=${OUT_DIR:-/dev/shm/kernel-out}
-
-  
   echo "=== Building Kernel ==="
   # build kernel
   ${KERNEL_BUILD_COMMAND}
@@ -112,8 +98,7 @@ popd || exit
 
 echo "=== Moving Build Artifacts ==="
 # stash parts we need
-cp -Rfv "${OUT_DIR}/${DEVICE_GROUP}/dist" "./kernel_out"
-
+mv -v "kernel/out/${DEVICE_GROUP}/dist" "./kernel_out"
 
 echo "=== Cleaning Up ==="
 # remove kernel sources to save space before rom clone
