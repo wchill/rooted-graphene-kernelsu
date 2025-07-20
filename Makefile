@@ -28,7 +28,7 @@ check_web_dir = $(if $(WEB_DIR),,$(error WEB_DIR is required))
 
 # Build podman image
 build-podman-image:
-	podman build --no-cache -t buildrom .
+	podman build -t buildrom .
 
 # Generate all the keys in a RAM fs
 generate-keys:
