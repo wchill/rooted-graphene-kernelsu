@@ -36,7 +36,7 @@ generate-keys:
 	podman run --rm \
 		-v "$(PWD)":/src:Z \
 		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
-		-w /dev/shm/graphene-keys \
+		-w /src \
 		buildrom \
 		/bin/bash /src/scripts/0b_keys.sh $(DEVICE)
 
