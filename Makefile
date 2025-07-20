@@ -15,6 +15,7 @@ all:
 	$(call check_web_dir)
 	$(MAKE) clean
 	$(MAKE) build-podman-image
+	$(MAKE) generate-keys
 	$(MAKE) check-versions
 	$(MAKE) pull-repo
 	$(MAKE) build-kernel
@@ -28,6 +29,16 @@ check_web_dir = $(if $(WEB_DIR),,$(error WEB_DIR is required))
 # Build podman image
 build-podman-image:
 	podman build --no-cache -t buildrom .
+
+# Generate all the keys in a RAM fs
+generate-keys:
+	$(call check_device)
+	podman run --rm \
+		-v "$(PWD)":/src:Z \
+		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
+		-w /dev/shm/graphene-keys \
+		buildrom \
+		/bin/bash /src/scripts/0b_keys.sh $(DEVICE)
 
 # Build kernel using podman
 build-kernel:
@@ -50,6 +61,7 @@ build-rom:
 		--pids-limit=0 \
 		--env USE_CCACHE=0 \
 		-v "$(PWD)":/src:Z \
+		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
 		-w /src \
 		buildrom \
 		/bin/bash /src/scripts/3_build_rom.sh $(DEVICE)
@@ -61,6 +73,7 @@ check-versions:
 		--memory="$(MEM_LIMIT)" \
 		--pids-limit=0 \
 		-v "$(PWD)":/src:Z \
+		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
 		-w /src \
 		buildrom \
 		/bin/bash /src/scripts/1_check_versions.sh $(DEVICE) $(GRAPHENE_BRANCH)
@@ -79,7 +92,7 @@ push-ota:
 		--memory="$(MEM_LIMIT)" \
 		--pids-limit=0 \
 		-v "$(PWD)":/src:Z \
-		-v "$(KEYS_DIR)":/keys \
+		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
 		-v "$(WEB_DIR)":/web \
 		-w /src \
 		buildrom \

@@ -12,6 +12,8 @@ DEVICE="${1,,}"
 # shellcheck disable=SC1090
 . "devices/${DEVICE}.sh"
 
+
+
 # import build markers
 BUILD_DATETIME="$(cat "data/${DEVICE}_build_datetime.txt")"
 BUILD_NUMBER="$(cat "data/${DEVICE}_build_number.txt")"
@@ -53,6 +55,7 @@ pushd rom/ || exit
 
   echo "Building AAPT2..."
   lunch sdk_phone64_x86_64-cur-user
+  m arsclib
   m aapt2
 
   echo "Fetching vendor binaries for ${DEVICE}..."
@@ -65,26 +68,25 @@ pushd rom/ || exit
   ${ROM_BUILD_COMMAND}
 
   echo "=== Generating Keys ==="
-  mkdir -p "keys/${DEVICE}/"
-  pushd "keys/${DEVICE}/" || exit
+  mkdir -p "/dev/shm/graphene-keys/android"
+  pushd "/dev/shm/graphene-keys/android" || exit
     echo "Generating signing keys..."
     CN=GrapheneOS
-    printf "\n" | ../../development/tools/make_key releasekey "/CN=$CN/" || true
-    printf "\n" | ../../development/tools/make_key platform "/CN=$CN/" || true
-    printf "\n" | ../../development/tools/make_key shared "/CN=$CN/" || true
-    printf "\n" | ../../development/tools/make_key media "/CN=$CN/" || true
-    printf "\n" | ../../development/tools/make_key networkstack "/CN=$CN/" || true
-    printf "\n" | ../../development/tools/make_key sdk_sandbox "/CN=$CN/" || true
-    printf "\n" | ../../development/tools/make_key bluetooth "/CN=$CN/" || true
-    echo "Generating AVB key..."
-    openssl genrsa 4096 | openssl pkcs8 -topk8 -scrypt -out avb.pem -passout pass:""
-    expect ../../../expect/passphrase-prompts.exp ../../external/avb/avbtool.py extract_public_key --key avb.pem --output avb_pkmd.bin
-    echo "Generating SSH key..."
-    ssh-keygen -t ed25519 -f id_ed25519 -N ""
+    printf "\n" | /src/rom/development/tools/make_key releasekey "/CN=$CN/" || true
+    printf "\n" | /src/rom/development/tools/make_key platform "/CN=$CN/" || true
+    printf "\n" | /src/rom/development/tools/make_key shared "/CN=$CN/" || true
+    printf "\n" | /src/rom/development/tools/make_key media "/CN=$CN/" || true
+    printf "\n" | /src/rom/development/tools/make_key networkstack "/CN=$CN/" || true
+    printf "\n" | /src/rom/development/tools/make_key sdk_sandbox "/CN=$CN/" || true
+    printf "\n" | /src/rom/development/tools/make_key bluetooth "/CN=$CN/" || true
   popd || exit
+  cp -a "/dev/shm/graphene-keys/android" "/dev/shm/graphene-keys/android-cleartext"
 
   echo "Encrypting keys..."
-  expect ../expect/passphrase-prompts.exp ./script/encrypt-keys.sh "./keys/${DEVICE}"
+  expect ../expect/passphrase-prompts.exp ./script/encrypt-keys "/dev/shm/graphene-keys/android"
+  echo "Moving encrypted keys to final destination in ROM build dir"
+  mkdir -p "./keys/${DEVICE}/"
+  cp -a  "/dev/shm/graphene-keys/android/*" "./keys/${DEVICE}/"
 
   echo "Generating OTA package..."
   m otatools-package

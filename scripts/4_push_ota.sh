@@ -16,7 +16,7 @@ set -e
 # load in avbroot passwords
 echo "Loading signing keys..."
 # shellcheck disable=SC1091
-. "/keys/passwords.sh"
+. "/dev/shm/graphene-keys/passwords.sh"
 
 # find latest ota zip
 echo "Locating latest OTA package..."
@@ -28,11 +28,11 @@ echo "=== Signing OTA Package ==="
 # sign ota zip with avbroot
 avbroot ota patch \
   --input "${OTA_ZIP_PATH}" \
-  --key-avb "/keys/avb.key" \
+  --key-avb "/dev/shm/graphene-keys/signing_keys/avb.pem" \
   --pass-avb-env-var AVB_PASSWORD \
-  --key-ota "/keys/ota.key" \
+  --key-ota "/dev/shm/graphene-keys/signing_keys/ota.key" \
   --pass-ota-env-var OTA_PASSWORD \
-  --cert-ota "/keys/ota.crt" \
+  --cert-ota "/dev/shm/graphene-keys/signing_keys/ota.crt" \
   --rootless # we already prepatched in kernelsu
 
 echo "=== Publishing OTA Package ==="
@@ -48,9 +48,9 @@ pushd "/web" || exit
   # generate csig for zip
   custota-tool gen-csig \
     --input "${OTA_ZIP_NAME}" \
-    --key "/keys/ota.key" \
+    --key "/dev/shm/graphene-keys/signing_keys/ota.key" \
     --passphrase-env-var OTA_PASSWORD \
-    --cert "/keys/ota.crt"
+    --cert "/dev/shm/graphene-keys/signing_keys/ota.crt"
 
   echo "Updating CustOTA JSON file..."
   # create / update the custota json file
