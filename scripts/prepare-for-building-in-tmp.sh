@@ -8,6 +8,7 @@ mount --bind /tmp/podman-run-containers /run/containers
 
 mkdir -p /tmp/aosp_mirror
 mkdir -p /tmp/adevtool_cache
+mkdir -p /tmp/ota
 
 
 mkdir -p /dev/shm/graphene-keys
