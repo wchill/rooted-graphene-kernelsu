@@ -29,9 +29,22 @@ echo "Creating and entering kernel directory..."
 mkdir -p kernel/
 pushd kernel/ || exit
   echo "Initializing kernel repository from ${KERNEL_REPO}..."
-  # sync kernel sources
-  repo init -u "${KERNEL_REPO}" -b "refs/tags/${GRAPHENE_RELEASE}" --depth=1 --git-lfs
-  echo "Syncing kernel repository..."
+  # sync kernel sources into cache
+  if [[ ! -f "${REPO_MIRROR}/kernel_is_synced" ]]; then
+    mkdir -p "${REPO_MIRROR}/kernel" && pushd "${REPO_MIRROR}/kernel"
+      repo init -u "${KERNEL_REPO}" -b "refs/tags/${GRAPHENE_RELEASE}" --depth=1 --git-lfs  --mirror
+      echo "Syncing kernel repository for first time"
+      repo_sync_until_success
+      touch "${REPO_MIRROR}/kernel_is_synced"
+    popd || exit
+  fi
+    
+  if [[ ! -f "${REPO_MIRROR}/kernel_is_synced" ]]; then
+    exit
+  fi
+  
+  repo init -u "${KERNEL_REPO}" -b "refs/tags/${GRAPHENE_RELEASE}" --depth=1 --git-lfs --reference="${REPO_MIRROR}/kernel"
+  echo "Syncing kernel repository into build area..."
   repo_sync_until_success
 
   # remove abi_gki_protected_exports files

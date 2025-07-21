@@ -9,6 +9,26 @@ MAX_MEM_PERCENT ?= 100
 CPU_LIMIT := $(shell echo $$(( $(shell nproc --all) * $(MAX_CPU_PERCENT) / 100 )))
 MEM_LIMIT := $(shell echo "$$(( $(shell free -m | awk '/^Mem:/{print $$2}') * $(MAX_MEM_PERCENT) / 100 ))m")
 
+REPO_MIRROR     ?= /tmp/aosp_mirror          # read‑only Git mirror
+ADEV_CACHE      ?= /tmp/adevtool_cache       # factory‑image ZIPs
+
+
+COMMON_PODMAN_FLAGS := \
+	--rm \
+	--cpus="$(CPU_LIMIT)" \
+	--memory="$(MEM_LIMIT)" \
+	--pids-limit=0 \
+	-v "$(PWD)":/src:Z \
+	-v "$(KEYS_DIR)":/dev/shm/graphene-keys:Z \
+	-v "$(REPO_MIRROR)":/aosp_mirror:Z \
+	-v "$(ADEV_CACHE)":/adevtool_dl_cache:Z \
+	-v "$(WEB_DIR)":/web \
+	-e REPO_MIRROR_INSIDE=/aosp_mirror \
+	-e ADEV_CACHE_INSIDE=/adevtool_dl_cache \
+	-e USE_CCACHE=0 \
+	-w /src
+
+
 # Default target must be first
 all:
 	$(call check_device)
@@ -33,49 +53,24 @@ build-podman-image:
 # Generate all the keys in a RAM fs
 generate-keys:
 	$(call check_device)
-	podman run --rm \
-		-v "$(PWD)":/src:Z \
-		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
-		-w /src \
-		buildrom \
+	podman run $(COMMON_PODMAN_FLAGS) buildrom \
 		/bin/bash /src/scripts/0b_keys.sh $(DEVICE)
 
 # Build kernel using podman
 build-kernel:
 	$(call check_device)
-	podman run --rm \
-		--cpus="$(CPU_LIMIT)" \
-		--memory="$(MEM_LIMIT)" \
-		--pids-limit=0 \
-		-v "$(PWD)":/src:Z \
-		-w /src \
-		buildrom \
+	podman run $(COMMON_PODMAN_FLAGS) buildrom \
 		/bin/bash /src/scripts/2_build_kernel.sh $(DEVICE)
 
 # Build rom using podman
 build-rom:
 	$(call check_device)
-	podman run --rm \
-		--cpus="$(CPU_LIMIT)" \
-		--memory="$(MEM_LIMIT)" \
-		--pids-limit=0 \
-		--env USE_CCACHE=0 \
-		-v "$(PWD)":/src:Z \
-		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
-		-w /src \
-		buildrom \
+	podman run $(COMMON_PODMAN_FLAGS) buildrom \
 		/bin/bash /src/scripts/3_build_rom.sh $(DEVICE)
 
 # Check versions
 check-versions:
-	podman run --rm \
-		--cpus="$(CPU_LIMIT)" \
-		--memory="$(MEM_LIMIT)" \
-		--pids-limit=0 \
-		-v "$(PWD)":/src:Z \
-		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
-		-w /src \
-		buildrom \
+	podman run $(COMMON_PODMAN_FLAGS) buildrom \
 		/bin/bash /src/scripts/1_check_versions.sh $(DEVICE) $(GRAPHENE_BRANCH)
 
 # Pull repo updates
@@ -87,15 +82,7 @@ pull-repo:
 push-ota:
 	$(call check_device)
 	$(call check_web_dir)
-	podman run --rm \
-		--cpus="$(CPU_LIMIT)" \
-		--memory="$(MEM_LIMIT)" \
-		--pids-limit=0 \
-		-v "$(PWD)":/src:Z \
-		-v "/dev/shm/graphene-keys":/dev/shm/graphene-keys:Z \
-		-v "$(WEB_DIR)":/web \
-		-w /src \
-		buildrom \
+	podman run $(COMMON_PODMAN_FLAGS) buildrom \
 		/bin/bash /src/scripts/4_push_ota.sh $(DEVICE)
 
 # Clean build directories
