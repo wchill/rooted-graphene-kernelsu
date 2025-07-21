@@ -101,8 +101,8 @@ pushd rom/ || exit
   echo "Encrypting keys..."
   expect ../expect/passphrase-prompts.exp ./script/encrypt-keys "/dev/shm/graphene-keys/android"
   echo "Moving encrypted keys to final destination in ROM build dir"
-  mkdir -p "./keys/${DEVICE}/"
-  cp -a  "/dev/shm/graphene-keys/android/*" "./keys/${DEVICE}/"
+  mkdir -p "./keys/"
+  cp -a  "/dev/shm/graphene-keys/android" "./keys/${DEVICE}"
 
   echo "Generating OTA package..."
   m otatools-package
