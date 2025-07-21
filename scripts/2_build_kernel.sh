@@ -103,6 +103,9 @@ pushd kernel/ || exit
 
   echo "6. Applying 'clean kernel version' patch..."
   patch -p1 < "../patches/0004-clean-kernel-version.patch"
+  
+  echo "7. Applying 'Disable KMI symbol strict‑mode for the 16 KiB GKI build' patch..."
+  patch -p1 < "../patches/0005-disable-KMI-symbol-strict‑mode-for-the-16-KiB-GKI-build.patch"
 
   echo "=== Building Kernel ==="
   # build kernel
