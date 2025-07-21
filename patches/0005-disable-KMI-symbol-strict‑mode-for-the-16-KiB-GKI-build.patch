@@ -1,16 +1,20 @@
---- a/private/devices/google/shusky/BUILD.bazel
-+++ b/private/devices/google/shusky/BUILD.bazel
-@@
--kernel_build(
--    name = "kernel",
+--- a/private/devices/google/shusky/BUILD.bazel 2025-07-21 16:23:25.472886372 +0200
++++ b/private/devices/google/shusky/BUILD.bazel 2025-07-21 16:24:23.657618913 +0200
+@@ -64,6 +64,9 @@
+     ],
+ )
+ 
 +# Disable KMI symbol strict‑mode for the 16 KiB GKI build so missing symbols
 +# like `kasan_flag_enabled` do not abort the build.  GrapheneOS production
 +# kernels ship with KMI relaxed on Tensor G3 devices.
-+
-+kernel_build(
-+    name = "kernel",
-@@
--    strip_modules = True,
-+    strip_modules = True,
+ kernel_build(
+     name = "kernel",
+     srcs = [":kernel_sources"],
+@@ -86,6 +89,7 @@
+     ],
+     module_outs = ZUMA_MODULE_OUTS,
+     strip_modules = True,
 +    kmi_symbol_list_strict_mode = False,
  )
+ 
+ kernel_module_group(
