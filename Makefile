@@ -9,8 +9,8 @@ MAX_MEM_PERCENT ?= 100
 CPU_LIMIT := $(shell echo $$(( $(shell nproc --all) * $(MAX_CPU_PERCENT) / 100 )))
 MEM_LIMIT := $(shell echo "$$(( $(shell free -m | awk '/^Mem:/{print $$2}') * $(MAX_MEM_PERCENT) / 100 ))m")
 
-REPO_MIRROR     ?= /tmp/aosp_mirror          # read‑only Git mirror
-ADEV_CACHE      ?= /tmp/adevtool_cache       # factory‑image ZIPs
+REPO_MIRROR     ?= /tmp/aosp_mirror
+ADEV_CACHE      ?= /tmp/adevtool_cache
 
 
 COMMON_PODMAN_FLAGS := \
