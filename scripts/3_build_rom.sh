@@ -32,9 +32,25 @@ echo "GrapheneOS Release: ${GRAPHENE_RELEASE}"
 echo "Creating and entering ROM directory..."
 mkdir -p rom/
 pushd rom/ || exit
-  echo "Initializing ROM repository..."
-  # sync rom sources
-  repo init -u https://github.com/GrapheneOS/platform_manifest.git -b "refs/tags/${GRAPHENE_RELEASE}" --depth=1 --git-lfs
+
+  echo "Initializing ROM repository ..."
+  # sync kernel sources into cache
+  if [[ ! -f "${REPO_MIRROR_INSIDE}/rom_is_synced" ]]; then
+    mkdir -p "${REPO_MIRROR_INSIDE}/rom" && pushd "${REPO_MIRROR_INSIDE}/rom"
+      repo init -u https://github.com/GrapheneOS/platform_manifest.git -b "refs/tags/${GRAPHENE_RELEASE}" --depth=1 --git-lfs   --mirror
+      echo "Syncing ROM repository for first time"
+      repo_sync_until_success
+      touch "${REPO_MIRROR_INSIDE}/rom_is_synced"
+    popd || exit
+  fi
+    
+  if [[ ! -f "${REPO_MIRROR_INSIDE}/rom_is_synced" ]]; then
+    exit
+  fi
+  
+  echo "Initializing ROM repository into build area..."
+  # sync rom sources into repo mirror
+  repo init -u https://github.com/GrapheneOS/platform_manifest.git -b "refs/tags/${GRAPHENE_RELEASE}" --depth=1 --git-lfs --reference="${REPO_MIRROR_INSIDE}/rom"
   echo "Syncing ROM repository..."
   repo_sync_until_success
 
