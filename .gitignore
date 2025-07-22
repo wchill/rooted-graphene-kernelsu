@@ -1,3 +1,6 @@
 .vscode/
 /kernel
 /rom
+/rom-base
+/data
+
