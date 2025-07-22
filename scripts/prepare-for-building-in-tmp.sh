@@ -16,5 +16,5 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cp "$SCRIPT_DIR/passwords.sh" /dev/shm/graphene-keys
 
 apt update -y
-apt install -y podman tree
+apt install -y podman tree iotop
 
