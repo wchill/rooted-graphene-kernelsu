@@ -19,7 +19,7 @@ export OTA_PASSWORD="\r"
 # load in avbroot passwords
 echo "Loading signing keys..."
 # shellcheck disable=SC1091
-. "/dev/shm/graphene-keys/passwords.sh"
+#. "/dev/shm/graphene-keys/passwords.sh"
 
 # find latest ota zip
 echo "Locating latest OTA package..."
