@@ -60,7 +60,7 @@ pushd rom/ || exit
   KERNEL_DIR=$(ls "device/google/${DEVICE_GROUP}-kernels/${KERNEL_VERSION}" | grep -v '.git')
   rm -rf "device/google/${DEVICE_GROUP}-kernels/${KERNEL_VERSION}/${KERNEL_DIR}/*"
   cp -Rfv ../kernel_out/* "device/google/${DEVICE_GROUP}-kernels/${KERNEL_VERSION}/${KERNEL_DIR}/"
-  rm -rf ../kernel_out
+  #rm -rf ../kernel_out # WHY delete??
 
   echo "Installing adevtool..."
   yarnpkg install --cwd vendor/adevtool/
