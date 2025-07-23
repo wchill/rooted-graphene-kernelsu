@@ -95,9 +95,15 @@ pushd rom/ || exit
     printf "\n" | /src/rom/development/tools/make_key networkstack "/CN=$CN/" || true
     printf "\n" | /src/rom/development/tools/make_key sdk_sandbox "/CN=$CN/" || true
     printf "\n" | /src/rom/development/tools/make_key bluetooth "/CN=$CN/" || true
+    echo "Generating AVB key..."
+    openssl genrsa 4096 | openssl pkcs8 -topk8 -scrypt -out avb.pem -passout pass:""
+    expect /src/expect/passphrase-prompts.exp /src/rom/external/avb/avbtool.py extract_public_key --key avb.pem --output avb_pkmd.bin
+    echo "Generating SSH key..."
+    ssh-keygen -t ed25519 -f id_ed25519 -N ""
+
+    
   popd || exit
   cp -a "/dev/shm/graphene-keys/android" "/dev/shm/graphene-keys/android-cleartext"
-  cp -af /dev/shm/graphene-keys/signing_keys/* "/dev/shm/graphene-keys/android/"
 
   echo "Encrypting keys..."
   expect ../expect/passphrase-prompts.exp ./script/encrypt-keys "/dev/shm/graphene-keys/android"
