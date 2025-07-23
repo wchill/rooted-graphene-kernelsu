@@ -9,6 +9,9 @@ echo "Device: ${DEVICE}"
 # exit on error
 set -e
 
+export AVB_PASSWORD="\r"
+export OTA_PASSWORD="\r"
+
 # include common functions
 # shellcheck disable=SC1091
 . "scripts/0_includes.sh"
