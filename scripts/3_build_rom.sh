@@ -97,7 +97,7 @@ pushd rom/ || exit
     printf "\n" | /src/rom/development/tools/make_key bluetooth "/CN=$CN/" || true
   popd || exit
   cp -a "/dev/shm/graphene-keys/android" "/dev/shm/graphene-keys/android-cleartext"
-  cp -a /dev/shm/graphene-keys/signing_keys/* "/dev/shm/graphene-keys/android/"
+  cp -af /dev/shm/graphene-keys/signing_keys/* "/dev/shm/graphene-keys/android/"
 
   echo "Encrypting keys..."
   expect ../expect/passphrase-prompts.exp ./script/encrypt-keys "/dev/shm/graphene-keys/android"
