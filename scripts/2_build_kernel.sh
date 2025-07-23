@@ -117,7 +117,7 @@ echo "=== Moving Build Artifacts ==="
 mv -v "kernel/out/${DEVICE_GROUP}/dist" "./kernel_out"
 
 echo "=== Cleaning Up ==="
-# remove kernel sources to save space before rom clone
-rm -rf kernel/
+# remove kernel sources to save space before rom clone: SKIP FOR NOW
+#rm -rf kernel/
 
 echo "=== Kernel Build Complete ==="

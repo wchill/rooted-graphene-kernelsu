@@ -128,7 +128,8 @@ ls "rom/releases/${BUILD_NUMBER}/release-${DEVICE}-${BUILD_NUMBER}/${DEVICE}-ota
 echo "Updating device build record..."
 printf "%s\n%s\n%s\n" "${GRAPHENE_RELEASE}" "${KSU_VERSION}" "${SUSFS_COMMIT}" > "data/${DEVICE}_built.txt"
 
-echo "Deleting build markers..."
-rm -fv "data/${DEVICE}"_build_*.txt
+# Skip for now
+# echo "Deleting build markers..."
+# rm -fv "data/${DEVICE}"_build_*.txt
 
 echo "=== Build Process Finished ==="
