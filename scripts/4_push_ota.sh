@@ -12,6 +12,12 @@ set -e
 export AVB_PASSWORD=""
 export OTA_PASSWORD=""
 
+echo "OTA key..."
+echo "Generating OTA key..."
+avbroot key generate-key -o /dev/shm/graphene-keys/android/ota.key --pass-env-var OTA_PASSWORD --log-level TRACE --log-format long
+echo "Generating OTA cert..."
+avbroot key generate-cert -k /dev/shm/graphene-keys/android/ota.key -o /dev/shm/graphene-keys/android/ota.crt --pass-env-var OTA_PASSWORD --log-level TRACE --log-format long
+
 # include common functions
 # shellcheck disable=SC1091
 . "scripts/0_includes.sh"
