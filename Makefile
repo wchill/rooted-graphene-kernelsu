@@ -12,7 +12,7 @@ CPU_LIMIT := $(shell echo $$(( $(shell nproc --all) * $(MAX_CPU_PERCENT) / 100 )
 MEM_LIMIT := $(shell echo "$$(( $(shell free -m | awk '/^Mem:/{print $$2}') * $(MAX_MEM_PERCENT) / 100 ))m")
 
 REPO_MIRROR     ?= "$(ROOT_DIR)/aosp_mirror"
-ADEV_CACHE      ?= "$(ROOT_DIR)/tmp/adevtool_cache"
+ADEV_CACHE      ?= "$(ROOT_DIR)/adevtool_cache"
 
 
 COMMON_PODMAN_FLAGS := \
