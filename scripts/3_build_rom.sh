@@ -103,7 +103,9 @@ pushd rom/ || exit
 
     
   popd || exit
-  cp -a "/dev/shm/graphene-keys/android" "/dev/shm/graphene-keys/android-cleartext"
+  rm -rf "/dev/shm/graphene-keys/android-cleartext"
+  mkdir -p "/dev/shm/graphene-keys/android-cleartext"
+  cp -a /dev/shm/graphene-keys/android/* "/dev/shm/graphene-keys/android-cleartext"
 
   echo "Encrypting keys..."
   expect ../expect/passphrase-prompts.exp ./script/encrypt-keys "/dev/shm/graphene-keys/android"
