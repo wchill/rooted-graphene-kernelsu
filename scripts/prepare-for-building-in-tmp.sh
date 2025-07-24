@@ -1,20 +1,20 @@
-mkdir -p /tmp/podman-var-lib-containers
+export ROOT_DIR=/mnt
+mkdir -p $ROOT_DIR/podman-var-lib-containers
 mkdir -p /var/lib/containers/
-mount --bind /tmp/podman-var-lib-containers /var/lib/containers/
+mount --bind $ROOT_DIR/podman-var-lib-containers /var/lib/containers/
 
-mkdir -p /tmp/podman-run-containers
+mkdir -p $ROOT_DIR/podman-run-containers
 mkdir -p /run/containers
-mount --bind /tmp/podman-run-containers /run/containers
+mount --bind $ROOT_DIR/podman-run-containers /run/containers
 
-mkdir -p /tmp/aosp_mirror
-mkdir -p /tmp/adevtool_cache
-mkdir -p /tmp/ota
+mkdir -p $ROOT_DIR/aosp_mirror
+mkdir -p $ROOT_DIR/adevtool_cache
+mkdir -p $ROOT_DIR/ota
 
 
-mkdir -p /dev/shm/graphene-keys
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-cp "$SCRIPT_DIR/passwords.sh" /dev/shm/graphene-keys
+mkdir -p /dev/shm/graphene-keys/android
 
 apt update -y
 apt install -y podman tree iotop
 
+podman load -i $ROOT_DIR/builrom.tar
