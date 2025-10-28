@@ -1,12 +1,12 @@
 .PHONY: all build clean push-ota
 
 # optional inputs for CPU and memory limits (defaults to 100% of available resources)
+ROOT_DIR ?= $(shell pwd)
 GRAPHENE_BRANCH ?= stable
-KEYS_DIR ?= /dev/shm/graphene-keys
+KEYS_DIR ?= "$(ROOT_DIR)/keys"
 MAX_CPU_PERCENT ?= 100
 MAX_MEM_PERCENT ?= 100
 
-ROOT_DIR ?= /mnt
 
 CPU_LIMIT := $(shell echo $$(( $(shell nproc --all) * $(MAX_CPU_PERCENT) / 100 )))
 MEM_LIMIT := $(shell echo "$$(( $(shell free -m | awk '/^Mem:/{print $$2}') * $(MAX_MEM_PERCENT) / 100 ))m")
@@ -33,12 +33,13 @@ COMMON_PODMAN_FLAGS := \
 
 # Default target must be first
 all:
+	mkdir -p $(REPO_MIRROR)
 	$(call check_device)
 	$(call check_web_dir)
 	$(MAKE) clean
 	$(MAKE) build-podman-image
 	$(MAKE) check-versions
-	$(MAKE) pull-repo
+	# $(MAKE) pull-repo
 	$(MAKE) build-kernel
 	$(MAKE) build-rom
 	$(MAKE) push-ota

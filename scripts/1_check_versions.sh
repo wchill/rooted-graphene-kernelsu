@@ -22,7 +22,7 @@ echo "Latest release: ${GRAPHENE_RELEASE}"
 
 # fetch latest KernelSU release version
 echo "Fetching latest KernelSU commit..."
-CURRENT_KSU_VERSION=$(curl -s https://api.github.com/repos/tiann/KernelSU/releases/latest | jq -r '.tag_name')
+CURRENT_KSU_VERSION=$(curl -s https://api.github.com/repos/KernelSU-Next/KernelSU-Next/releases/latest | jq -r '.tag_name')
 echo "Latest KernelSU version: ${CURRENT_KSU_VERSION}"
 
 # fetch latest SUSFS commit
