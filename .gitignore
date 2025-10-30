@@ -1,6 +1,10 @@
 .vscode/
+.idea/
+/aosp_mirror
 /kernel
 /rom
 /rom-base
 /data
 /kernel_out
+/build_output
+build_metadata_*.json

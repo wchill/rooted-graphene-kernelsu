@@ -1,0 +1,47 @@
+name: Build kernel for all devices
+
+on:
+  # Run daily in addition to release-multiple to make sure devices released later still get built
+  schedule:
+    - cron:  '0 3 * * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+  # Allows calling from release action
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  # Checking if a new version was released at all before starting the matrix would be more efficient, but depends on device
+  # So run the whole matrix as cron. One of the first checks is if there is a need for release at all.
+  build-devices:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device-id: tokay # Pixel 9
+          - device-id: bluejay # Pixel 6a
+          #- device-id: tangorpro # Pixel Tablet
+          #- device-id: tegu # Pixel 9a
+          #- device-id: komodo # Pixel 9 Pro XL
+          # - device-id: caiman # Pixel 9 Pro
+          # - device-id: oriole # Pixel 6
+          # - device-id: husky # Pixel 8 Pro
+          # - device-id: shiba # Pixel 8
+          # - device-id: panther # Pixel 7
+          # - device-id: lynx # Pixel 7a
+          # - device-id: felix # Pixel fold
+
+#          - device-id: akita # Pixel 8a # https://github.com/Enovale/rooted-graphene/blob/4bb6f99cc0e1c22acd4bc71d6662ae3d9059849a/.github/workflows/release-multiple.yaml#L23
+#            magisk-preinit-device: sda10
+#          - device-id: raven # Pixel 6 Pro
+#            magisk-preinit-device: metadata # https://github.com/skrimix/rooted-graphene/blob/319839bfcaba6548446f17bf8e56cd7ecb8f793e/.github/workflows/release.yaml#L39
+#          - device-id: cheetah # Pixel Pro 7
+#            magisk-preinit-device: persist # https://xdaforums.com/t/guide-to-lock-bootloader-while-using-rooted-otaos-magisk-root.4510295/page-5#post-88499289)
+    uses: ./.github/workflows/build-kernel.yaml
+    secrets: inherit
+    with:
+      device-id: ${{ matrix.device-id }}

@@ -1,13 +1,14 @@
 FROM ubuntu:latest
 
 # set variables
-ARG PUP_VERSION="0.4.0" \
-    AVBROOT_VERSION="3.23.1" \
-    CUSTOTA_TOOL_VERSION="5.16" \
-    DEBIAN_FRONTEND=noninteractive
+ARG AVBROOT_VERSION="3.23.1"
+ARG CUSTOTA_TOOL_VERSION="5.16"
+ARG DEBIAN_FRONTEND=noninteractive
+
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # install apt dependencies
-RUN apt update && apt dist-upgrade -y && \
+RUN apt update && \
     apt install -y \
     bison \
     build-essential \
@@ -16,12 +17,11 @@ RUN apt update && apt dist-upgrade -y && \
     flex \
     git \
     git-lfs \
-    jq \
     libncurses-dev \
     libssl-dev \
     lz4 \
-    openjdk-21-jdk-headless \
     python3 \
+    python3-pip \
     python3-googleapi \
     python3-protobuf \
     rsync \
@@ -44,13 +44,7 @@ RUN curl -o /var/tmp/custota-tool.zip -L "https://github.com/chenxiaolong/Custot
     chmod +x /usr/bin/custota-tool && \
     rm -f /var/tmp/custota-tool.zip
 
-# install pup command
-RUN curl -o /var/tmp/pup.zip -L "https://github.com/ericchiang/pup/releases/download/v${PUP_VERSION}/pup_v${PUP_VERSION}_linux_amd64.zip" && \
-    unzip /var/tmp/pup.zip -d /usr/bin && \
-    chmod +x /usr/bin/pup && \
-    rm -f /var/tmp/pup.zip
-
-    # install repo command
+# install repo command
 RUN curl -s https://storage.googleapis.com/git-repo-downloads/repo > /usr/bin/repo && \
     chmod +x /usr/bin/repo
 
@@ -61,6 +55,8 @@ RUN cd /var/tmp && \
     curl -LO http://launchpadlibrarian.net/648013227/libncurses5_6.4-2_amd64.deb && \
     dpkg -i libncurses5_6.4-2_amd64.deb && \
     rm -f ./*.deb
+
+RUN python3 -m pip install requests pygithub
 
 # configure git
 RUN git config --global color.ui false && \

@@ -1,0 +1,17 @@
+{
+  "device": {
+    "group": "dummy"
+  },
+  "kernel": {
+    "build_command": "mkdir -p out/dummy/dist && echo \"ok\" > out/dummy/dist/empty.txt"
+  },
+  "kernelsu": {
+    "branch": "next-susfs-a14-6.1-dev"
+  },
+  "susfs": {
+    "branch": "gki-android14-6.1"
+  },
+  "grapheneos": {
+    "branch": "stable"
+  }
+}

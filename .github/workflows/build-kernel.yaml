@@ -1,0 +1,88 @@
+name: Build kernel for single device
+
+on:
+  workflow_call:
+    inputs:
+      device-id:
+        type: string
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      device-id:
+        description: Device ID
+        required: true
+      skip-release:
+        description: Skip release (build only)
+        required: false
+        type: boolean
+      additional-env:
+        description: Additional env var key value pairs, space separated, e.g. "A=1 B=2"
+        default: ''
+jobs:
+  build-device:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Allow for switching to github-pages branch
+          fetch-depth: 0
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: "Dockerfile"
+          tags: kernelbuild:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: false
+      - name: Set inputs
+        # Empty means, use version defined in rooted-ota.sh
+        # Note the difference between github.event.inputs (workflow_dispatch) and inputs (workflow_call)
+        run: |
+          export DEVICE_ID=$(echo '${{ github.event.inputs.device-id || inputs.device-id || 'shiba' }}' | xargs)
+          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
+          echo "SKIP_RELEASE=$(echo '${{ github.event.inputs.skip-release || '' }}' | xargs)" >> $GITHUB_ENV
+          
+          if [[ "${{ github.event_name }}" == "push" ]]  || [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Running on push: Simple build without release for device $DEVICE_ID"
+            echo "FORCE_BUILD=true" >> $GITHUB_ENV
+            echo "SKIP_RELEASE=true" >> $GITHUB_ENV
+          fi
+          
+          echo "USE_CCACHE=0" >> $GITHUB_ENV
+          
+          # Split additional-env and set each key-value pair as an environment variable
+          IFS=' ' read -r -a env_vars <<< '${{ github.event.inputs.additional-env || '' }}'
+          for key_value_pair in "${env_vars[@]}"; do
+            echo "$key_value_pair" >> $GITHUB_ENV
+          done
+          
+          mkdir -p build_output/
+          python3 scripts/generate_env.py "$DEVICE_ID" "${{ github.repository }}" "${{ github.sha }}" build_output >> $GITHUB_ENV
+          cat $GITHUB_ENV >> .env
+          cat .env
+      - name: Load kernel from cache
+        id: load-cache
+        uses: actions/cache@v4
+        with:
+          path: build_output/
+          key: ${{ env.CACHE_KEY }}
+      - name: Build kernel
+        id: build-kernel
+        if: steps.load-cache.outputs.cache-hit != true
+        run: |
+          docker run --rm --pids-limit=0 -v "${{ github.workspace }}":/src:Z --env-file .env -w /src kernelbuild /bin/bash /src/scripts/build_kernel.sh $DEVICE_ID
+          echo "BUILD_OUTPUT=build_output/kernel-"${DEVICE_ID}"-"${GRAPHENEOS_VERSION}".zip" >> $GITHUB_ENV
+      - name: Cache build artifacts
+        id: cache-kernel-save
+        if: always() && steps.load-cache.outputs.cache-hit != true && steps.build-kernel.outcome == success()
+        uses: actions/cache/save@v4
+        with:
+          path: build_output/
+          key: ${{ env.CACHE_KEY }}
+      - name: Upload artifacts
+        if: github.event.inputs.skip-release != true
+        run: |
+          docker run --rm --pids-limit=0 -v "${{ github.workspace }}":/src:Z --env-file .env -w /src kernelbuild python3 /src/scripts/create_kernel_release.py ${{ secrets.GITHUB_TOKEN }} "$BUILD_METADATA_FILE" "$BUILD_OUTPUT"

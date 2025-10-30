@@ -1,9 +1,10 @@
-.PHONY: all build clean push-ota
+.PHONY: all build clean
 
 # optional inputs for CPU and memory limits (defaults to 100% of available resources)
 ROOT_DIR ?= $(shell pwd)
 GRAPHENE_BRANCH ?= stable
 KEYS_DIR ?= "$(ROOT_DIR)/keys"
+OUTPUT_DIR ?= "$(ROOT_DIR)/output"
 MAX_CPU_PERCENT ?= 100
 MAX_MEM_PERCENT ?= 100
 
@@ -17,16 +18,9 @@ ADEV_CACHE      ?= "$(ROOT_DIR)/adevtool_cache"
 
 COMMON_PODMAN_FLAGS := \
 	--rm \
-	--cpus="$(CPU_LIMIT)" \
-	--memory="$(MEM_LIMIT)" \
 	--pids-limit=0 \
 	-v "$(PWD)":/src:Z \
-	-v "$(KEYS_DIR)":/dev/shm/graphene-keys:Z \
-	-v "$(REPO_MIRROR)":/aosp_mirror:Z \
-	-v "$(ADEV_CACHE)":/adevtool_dl_cache:Z \
-	-v "$(WEB_DIR)":/web \
-	-e REPO_MIRROR_INSIDE=/aosp_mirror \
-	-e ADEV_CACHE_INSIDE=/adevtool_dl_cache \
+	-v "$(OUTPUT_DIR)":/output \
 	-e USE_CCACHE=0 \
 	-w /src
 
@@ -34,19 +28,15 @@ COMMON_PODMAN_FLAGS := \
 # Default target must be first
 all:
 	mkdir -p $(REPO_MIRROR)
+	mkdir -p $(OUTPUT_DIR)
 	$(call check_device)
-	$(call check_web_dir)
 	$(MAKE) clean
 	$(MAKE) build-podman-image
-	$(MAKE) check-versions
 	# $(MAKE) pull-repo
 	$(MAKE) build-kernel
-	$(MAKE) build-rom
-	$(MAKE) push-ota
 
 # Check required variables
 check_device = $(if $(DEVICE),,$(error DEVICE is required))
-check_web_dir = $(if $(WEB_DIR),,$(error WEB_DIR is required))
 
 # Build podman image
 build-podman-image:
@@ -55,32 +45,9 @@ build-podman-image:
 # Build kernel using podman
 build-kernel:
 	$(call check_device)
-	podman run $(COMMON_PODMAN_FLAGS) buildrom \
-		/bin/bash /src/scripts/2_build_kernel.sh $(DEVICE)
-
-# Build rom using podman
-build-rom:
-	$(call check_device)
-	podman run $(COMMON_PODMAN_FLAGS) buildrom \
-		/bin/bash /src/scripts/3_build_rom.sh $(DEVICE)
-
-# Check versions
-check-versions:
-	podman run $(COMMON_PODMAN_FLAGS) buildrom \
-		/bin/bash /src/scripts/1_check_versions.sh $(DEVICE) $(GRAPHENE_BRANCH)
-
-# Pull repo updates
-pull-repo:
-	git reset --hard
-	git pull
-
-# Push OTA update
-push-ota:
-	$(call check_device)
-	$(call check_web_dir)
-	podman run $(COMMON_PODMAN_FLAGS) buildrom \
-		/bin/bash /src/scripts/4_push_ota.sh $(DEVICE)
+	podman run --rm --pids-limit=0 -v "$(PWD)":/src:Z -v "$(OUTPUT_DIR)":/output -e USE_CCACHE=0 -w /src buildrom \
+		/bin/bash /src/scripts/build_kernel.sh $(DEVICE)
 
 # Clean build directories
 clean:
-	rm -rfv "data/*_build_*.txt" device_tmp/ kernel/ kernel_out/ rom/
+	rm -rfv build_metadata.json device_tmp/ kernel/ kernel_out/
