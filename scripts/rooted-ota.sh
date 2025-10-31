@@ -30,6 +30,8 @@ MAGISK_PREINIT_DEVICE=${MAGISK_PREINIT_DEVICE:-}
 SKIP_KERNELSU=${SKIP_KERNELSU:-'false'}
 # Skip creation of rootless OTA by setting to "true"
 SKIP_ROOTLESS=${SKIP_ROOTLESS:-'false'}
+# Skip compatibility check by setting to "true"
+IGNORE_PREPATCHED_COMPAT=${IGNORE_PREPATCHED_COMPAT:-'false'}
 # https://grapheneos.org/releases#stable-channel
 OTA_VERSION=${OTA_VERSION:-'latest'}
 
@@ -368,6 +370,9 @@ function patchOTAs() {
       elif [[ "$flavor" == 'kernelsu' ]]; then
         downloadAndVerifyKernelSu
         args+=("--patch-arg=--prepatched" "--patch-arg" ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}/boot.img")
+        if [[ "$IGNORE_PREPATCHED_COMPAT" == 'true' ]]; then
+          args+=("--patch-arg=--ignore-prepatched-compat" "--patch-arg=--ignore-prepatched-compat")
+        fi
       fi
 
       # If env vars not set, passphrases will be queried interactively

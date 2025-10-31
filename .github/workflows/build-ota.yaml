@@ -18,14 +18,6 @@ on:
       magisk-preinit-device:
         description: Magisk preinit device
         required: false
-      skip-kernelsu:
-        description: skip building KernelSU OTA
-        type: boolean
-        required: false
-      skip-rootless:
-        description: skip building rootless OTA
-        type: boolean
-        required: false
       upload-test-ota:
         description: Upload OTA to test folder
         required: false
@@ -45,6 +37,10 @@ on:
       ota-version:
         description: OTA version
         required: false
+      skip-compatibility-check:
+        description: Skip compatibility checks for KernelSU
+        required: false
+        type: boolean
       additional-env:
         description: Additional env var key value pairs, space separated, e.g. "A=1 B=2"
         default: ''
@@ -73,6 +69,7 @@ jobs:
           echo "FORCE_OTA_SERVER_UPLOAD=$(echo '${{ github.event.inputs.force-ota-server-upload || '' }}' | xargs)" >> $GITHUB_ENV
           echo "FORCE_BUILD=$(echo '${{ github.event.inputs.force-build || '' }}' | xargs)" >> $GITHUB_ENV
           echo "UPLOAD_TEST_OTA=$(echo '${{ github.event.inputs.upload-test-ota || '' }}' | xargs)" >> $GITHUB_ENV
+          echo "IGNORE_PREPATCHED_COMPAT=$(echo '${{ github.event.inputs.skip-compatibility-check || '' }}' | xargs)" >> $GITHUB_ENV
           echo "SKIP_KERNELSU=$(echo '${{ github.event.inputs.skip-kernelsu || '' }}' | xargs)" >> $GITHUB_ENV
           echo "SKIP_ROOTLESS=$(echo '${{ github.event.inputs.skip-rootless || '' }}' | xargs)" >> $GITHUB_ENV
           echo "SKIP_RELEASE=$(echo '${{ github.event.inputs.skip-release || '' }}' | xargs)" >> $GITHUB_ENV
