@@ -42,9 +42,6 @@ on:
         description: Skip release (build only)
         required: false
         type: boolean
-      rooted-graphene-version:
-        description: Git ref of rooted graphene repo to use
-        required: false
       ota-version:
         description: OTA version
         required: false
