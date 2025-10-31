@@ -26,6 +26,8 @@ GITHUB_REPO=${GITHUB_REPO:-''}
 # Optional
 # If you want an OTA patched with magisk, set the preinit for your device
 MAGISK_PREINIT_DEVICE=${MAGISK_PREINIT_DEVICE:-}
+# Skip creation of kernelsu OTA by setting to "true"
+SKIP_KERNELSU=${SKIP_KERNELSU:-'false'}
 # Skip creation of rootless OTA by setting to "true"
 SKIP_ROOTLESS=${SKIP_ROOTLESS:-'false'}
 # https://grapheneos.org/releases#stable-channel
@@ -76,6 +78,10 @@ PATCH_PY_COMMIT=84139189c8cbe244a676582a3b3517f31fabc421
 PYTHON_VERSION=3.14.0-alpine
 # renovate: datasource=github-releases packageName=chenxiaolong/OEMUnlockOnBoot versioning=semver-coerced
 OEMUNLOCKONBOOT_VERSION=1.3
+# renovate: datasource=github-releases packageName=chenxiaolong/MSD versioning=semver-coerced
+MSD_VERSION=1.16
+# renovate: datasource=github-releases packageName=chenxiaolong/BCR versioning=semver-coerced
+BCR_VERSION=1.83
 # renovate: datasource=github-releases packageName=chenxiaolong/afsr versioning=semver
 AFSR_VERSION=1.0.3
 
@@ -146,6 +152,12 @@ function checkBuildNecessary() {
     POTENTIAL_ASSETS['magisk']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-magisk-${MAGISK_VERSION}$(createAssetSuffix).zip"
   else
     printGreen "MAGISK_PREINIT_DEVICE not set for device, not creating magisk OTA"
+  fi
+
+  if [[ "$SKIP_KERNELSU" != 'true' ]]; then
+    POTENTIAL_ASSETS['kernelsu']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-kernelsu$(createAssetSuffix).zip"
+  else
+    printGreen "SKIP_KERNELSU set, not creating kernelsu OTA"
   fi
 
   if [[ "$SKIP_ROOTLESS" != 'true' ]]; then
@@ -268,6 +280,23 @@ function downloadAvBroot() {
   downloadAndVerifyFromChenxiaolong 'avbroot' "$AVB_ROOT_VERSION"
 }
 
+function downloadAndVerifyKernelSu() {
+  local url="https://github.com/wchill/rooted-graphene-kernel/releases/download/${OTA_VERSION}/kernel-${DEVICE_ID}-${OTA_VERSION}.zip"
+  local downloadedZipFile
+  downloadedZipFile="$(mktemp)"
+
+  mkdir -p .tmp
+
+  if ! ls ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}" >/dev/null 2>&1; then
+    curl --fail -sL "${url}" > "${downloadedZipFile}"
+
+    # TODO: Either upload boot.img directly or redo the way files are zipped.
+    mkdir -p ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}"
+    echo N | unzip "${downloadedZipFile}" -d ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}"
+    rm "${downloadedZipFile}"*
+  fi
+}
+
 function downloadAndVerifyFromChenxiaolong() {
   local repo="$1"
   local version="$2"
@@ -305,6 +334,14 @@ function patchOTAs() {
     curl --fail -sL "https://github.com/chenxiaolong/OEMUnlockOnBoot/releases/download/v${OEMUNLOCKONBOOT_VERSION}/OEMUnlockOnBoot-${OEMUNLOCKONBOOT_VERSION}-release.zip" > .tmp/oemunlockonboot.zip
     curl --fail -sL "https://github.com/chenxiaolong/OEMUnlockOnBoot/releases/download/v${OEMUNLOCKONBOOT_VERSION}/OEMUnlockOnBoot-${OEMUNLOCKONBOOT_VERSION}-release.zip.sig" > .tmp/oemunlockonboot.zip.sig
   fi
+  if ! ls ".tmp/msd.zip" >/dev/null 2>&1; then
+    curl --fail -sL "https://github.com/chenxiaolong/MSD/releases/download/v${MSD_VERSION}/MSD-${MSD_VERSION}-release.zip" > .tmp/msd.zip
+    curl --fail -sL "https://github.com/chenxiaolong/MSD/releases/download/v${MSD_VERSION}/MSD-${MSD_VERSION}-release.zip.sig" > .tmp/msd.zip.sig
+  fi
+  if ! ls ".tmp/bcr.zip" >/dev/null 2>&1; then
+    curl --fail -sL "https://github.com/chenxiaolong/BCR/releases/download/v${BCR_VERSION}/BCR-${BCR_VERSION}-release.zip" > .tmp/bcr.zip
+    curl --fail -sL "https://github.com/chenxiaolong/BCR/releases/download/v${BCR_VERSION}/BCR-${BCR_VERSION}-release.zip.sig" > .tmp/bcr.zip.sig
+  fi
   if ! ls ".tmp/my-avbroot-setup" >/dev/null 2>&1; then
     git clone https://github.com/chenxiaolong/my-avbroot-setup .tmp/my-avbroot-setup
     (cd .tmp/my-avbroot-setup && git checkout ${PATCH_PY_COMMIT})
@@ -328,6 +365,9 @@ function patchOTAs() {
       if [[ "$flavor" == 'magisk' ]]; then
         args+=("--patch-arg=--magisk" "--patch-arg" ".tmp/magisk-$MAGISK_VERSION.apk")
         args+=("--patch-arg=--magisk-preinit-device" "--patch-arg" "$MAGISK_PREINIT_DEVICE")
+      elif [[ "$flavor" == 'kernelsu' ]]; then
+        downloadAndVerifyKernelSu
+        args+=("--patch-arg=--prepatched" "--patch-arg" ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}/boot.img")
       fi
 
       # If env vars not set, passphrases will be queried interactively
@@ -342,6 +382,8 @@ function patchOTAs() {
       if [[ "${SKIP_MODULES}" != 'true' ]]; then
         args+=("--module-custota" ".tmp/custota.zip")
         args+=("--module-oemunlockonboot" ".tmp/oemunlockonboot.zip")
+        args+=("--module-msd" ".tmp/msd.zip")
+        args+=("--module-bcr" ".tmp/bcr.zip")
       fi
       # We create csig and device JSON for OTA later if necessary
       args+=("--skip-custota-tool")
@@ -613,9 +655,3 @@ function printRed() {
       print "$@"
   fi
 }
-
-  echo "Copying kernel build artifacts..."
-  # shellcheck disable=SC2010
-  KERNEL_DIR=$(ls "device/google/${DEVICE_GROUP}-kernels/${KERNEL_VERSION}" | grep -v '.git')
-  rm -rf "device/google/${DEVICE_GROUP}-kernels/${KERNEL_VERSION}/${KERNEL_DIR}/*"
-  cp -Rfv ../kernel_out/* "device/google/${DEVICE_GROUP}-kernels/${KERNEL_VERSION}/${KERNEL_DIR}/
