@@ -1,0 +1,110 @@
+name: Release OTA for single device
+
+on:
+  workflow_call:
+    inputs:
+      device-id:
+        type: string
+      magisk-preinit-device:
+        type: string
+        default: ''
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      device-id:
+        description: Device ID
+        required: true
+      magisk-preinit-device:
+        description: Magisk preinit device
+        required: false
+      skip-kernelsu:
+        description: skip building KernelSU OTA
+        type: boolean
+        required: false
+      skip-rootless:
+        description: skip building rootless OTA
+        type: boolean
+        required: false
+      upload-test-ota:
+        description: Upload OTA to test folder
+        required: false
+        type: boolean
+      force-build:
+        description: Force artifacts to be built and uploaded to release if non-existing
+        required: false
+        type: boolean
+      force-ota-server-upload:
+        description: Force OTA server upload
+        required: false
+        type: boolean
+      skip-release:
+        description: Skip release (build only)
+        required: false
+        type: boolean
+      rooted-graphene-version:
+        description: Git ref of rooted graphene repo to use
+        required: false
+      ota-version:
+        description: OTA version
+        required: false
+      additional-env:
+        description: Additional env var key value pairs, space separated, e.g. "A=1 B=2"
+        default: ''
+jobs:
+  build-device:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20 # Make sure to not waste hours when some command does not return
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Allow for switching to github-pages branch
+          fetch-depth: 0
+      - name: Checkout OTA repository for updating OTA server on GitHub Pages
+        uses: actions/checkout@v5
+        with:
+          path: ota # Corresponds to PAGES_REPO_FOLDER
+          fetch-depth: 0 # Allow for switching to github-pages branch
+      - name: Set inputs
+        # Empty means, use version defined in rooted-ota.sh
+        # Note the difference between github.event.inputs (workflow_dispatch) and inputs (workflow_call)
+        run: |
+          echo "DEVICE_ID=$(echo '${{ github.event.inputs.device-id || inputs.device-id || 'shiba' }}' | xargs)" >> $GITHUB_ENV
+          echo "MAGISK_PREINIT_DEVICE=$(echo '${{ github.event.inputs.magisk-preinit-device || inputs.magisk-preinit-device || '' }}' | xargs)" >> $GITHUB_ENV
+          
+          echo "OTA_VERSION=$(echo '${{ github.event.inputs.ota-version || '' }}' | xargs)" >> $GITHUB_ENV
+          echo "FORCE_OTA_SERVER_UPLOAD=$(echo '${{ github.event.inputs.force-ota-server-upload || '' }}' | xargs)" >> $GITHUB_ENV
+          echo "FORCE_BUILD=$(echo '${{ github.event.inputs.force-build || '' }}' | xargs)" >> $GITHUB_ENV
+          echo "UPLOAD_TEST_OTA=$(echo '${{ github.event.inputs.upload-test-ota || '' }}' | xargs)" >> $GITHUB_ENV
+          echo "SKIP_KERNELSU=$(echo '${{ github.event.inputs.skip-kernelsu || '' }}' | xargs)" >> $GITHUB_ENV
+          echo "SKIP_ROOTLESS=$(echo '${{ github.event.inputs.skip-rootless || '' }}' | xargs)" >> $GITHUB_ENV
+          echo "SKIP_RELEASE=$(echo '${{ github.event.inputs.skip-release || '' }}' | xargs)" >> $GITHUB_ENV
+          
+          if [[ "${{ github.event_name }}" == "push" ]]  || [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Running on push: Simple build without release for device $DEVICE_ID"
+            echo "FORCE_BUILD=true" >> $GITHUB_ENV
+            echo "SKIP_RELEASE=true" >> $GITHUB_ENV
+          fi
+          
+          # Split additional-env and set each key-value pair as an environment variable
+          IFS=' ' read -r -a env_vars <<< '${{ github.event.inputs.additional-env || '' }}'
+          for key_value_pair in "${env_vars[@]}"; do
+            echo "$key_value_pair" >> $GITHUB_ENV
+          done
+      - run: sudo apt-get install -y jq curl git
+      - name: release
+        env:
+          PASSPHRASE_AVB: ${{ secrets.PASSPHRASE_AVB }}
+          PASSPHRASE_OTA: ${{ secrets.PASSPHRASE_OTA }}
+          KEY_AVB_BASE64: ${{ secrets.KEY_AVB_BASE64 }}
+          CERT_OTA_BASE64: ${{ secrets.CERT_OTA_BASE64 }}
+          KEY_OTA_BASE64: ${{ secrets.KEY_OTA_BASE64 }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          PAGES_REPO_FOLDER: 'ota'
+        run: |
+          if [[ $SKIP_RELEASE == 'true' ]]; then
+            DEBUG=1 bash -c '. scripts/rooted-ota.sh && createRootedOta && createOtaServerData'
+          else
+            DEBUG=1 bash -c '. scripts/rooted-ota.sh && createAndReleaseRootedOta'
+          fi

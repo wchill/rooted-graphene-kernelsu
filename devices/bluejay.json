@@ -10,6 +10,9 @@
     "fetch_command": "git clone https://gitlab.com/grapheneos/kernel_pixel.git -b \"${GRAPHENEOS_VERSION}\" --recurse-submodules kernel",
     "build_command": "KLEAF_REPO_MANIFEST=aosp_manifest.xml ./build_bluejay.sh --lto=thin"
   },
+  "magisk": {
+    "preinit_device": "sda8"
+  },
   "kernelsu": {
     "branch": "next-susfs-a14-6.1-dev"
   },
