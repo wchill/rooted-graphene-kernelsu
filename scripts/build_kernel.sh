@@ -53,6 +53,7 @@ else
 
       # apply kernelsu
       echo "Setting up KernelSU..."
+      git submodule add https://github.com/KernelSU-Next/KernelSU-Next.git
       curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s "${KERNELSU_BRANCH}"
 
       # hardcode kernelsu version
