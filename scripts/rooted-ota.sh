@@ -283,7 +283,7 @@ function downloadAvBroot() {
 }
 
 function downloadAndVerifyKernelSu() {
-  local url="https://github.com/wchill/rooted-graphene-kernel/releases/download/${OTA_VERSION}/kernel-${DEVICE_ID}-${OTA_VERSION}.zip"
+  local url="https://github.com/wchill/rooted-graphene-kernelsu/releases/download/${OTA_VERSION}/kernel-${DEVICE_ID}-${OTA_VERSION}.zip"
   local downloadedZipFile
   downloadedZipFile="$(mktemp)"
 

@@ -14,7 +14,7 @@
     "preinit_device": "sda8"
   },
   "kernelsu": {
-    "branch": "next-susfs-a14-6.1-dev"
+    "branch": "main"
   },
   "susfs": {
     "branch": "gki-android14-6.1",

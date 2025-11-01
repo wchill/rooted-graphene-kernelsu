@@ -53,11 +53,11 @@ else
 
       # apply kernelsu
       echo "Setting up KernelSU..."
-      git submodule add https://github.com/KernelSU-Next/KernelSU-Next.git
-      curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s "${KERNELSU_BRANCH}"
+      git submodule add https://github.com/tiann/KernelSU.git
+      curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s "${KERNELSU_BRANCH}"
 
       # hardcode kernelsu version
-      pushd KernelSU-Next/ || exit
+      pushd KernelSU/ || exit
         echo "Configuring KernelSU version..."
         KERNELSU_VERSION=$(($(git rev-list --count HEAD) + 10200))
         echo "Using KernelSU version: ${KERNELSU_VERSION}"
@@ -70,10 +70,10 @@ else
 
       # apply patches
       echo "=== Applying Patches ==="
-      pushd KernelSU-Next/ || exit
-      #   echo "1. Applying SUSFS to KernelSU..."
-      #   patch -p1 < "../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch"
-      #
+      pushd KernelSU/ || exit
+        echo "1. Applying SUSFS to KernelSU..."
+        patch -p1 < "../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch"
+
         echo "2. Applying 'additional signatures' patch..."
         patch -p1 < "../../../patches/0001-add-managed-sigs.patch"
       popd || exit
