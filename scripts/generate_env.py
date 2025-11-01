@@ -32,7 +32,7 @@ def get_latest_ksu_commit(branch_name):
     if os.getenv("KERNELSU_VERSION"):
         return os.getenv("KERNELSU_VERSION")
 
-    r = requests.get(f"https://api.github.com/repos/KernelSU-Next/KernelSU-Next/commits?sha={branch_name}")
+    r = requests.get(f"https://api.github.com/repos/tiann/KernelSU/commits?sha={branch_name}")
     return r.json()[0]["sha"]
 
 
@@ -54,7 +54,7 @@ def main(device: str, repo_name: str, ref_name: str, metadata_output_dir: str):
         gos_version = get_latest_graphene_release("tokay", branch=env_vars.get("GRAPHENEOS_BRANCH", "stable"))
     else:
         gos_version = get_latest_graphene_release(device, branch=env_vars.get("GRAPHENEOS_BRANCH", "stable"))
-    ksu_version = get_latest_ksu_commit(env_vars.get("KERNELSU_BRANCH", "next"))
+    ksu_version = get_latest_ksu_commit(env_vars.get("KERNELSU_BRANCH", "main"))
     susfs_version = get_latest_susfs_commit(env_vars.get("SUSFS_BRANCH"))
 
     env_vars["DEVICE_ID"] = device
