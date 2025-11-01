@@ -12,6 +12,6 @@
     "branch": "gki-android14-6.1"
   },
   "grapheneos": {
-    "branch": "stable-security-preview"
+    "branch": "stable"
   }
 }
