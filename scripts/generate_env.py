@@ -61,7 +61,7 @@ def main(device: str, repo_name: str, ref_name: str, metadata_output_dir: str):
     env_vars["GRAPHENEOS_VERSION"] = gos_version
     env_vars["KERNELSU_VERSION"] = ksu_version
     env_vars["SUSFS_VERSION"] = susfs_version
-    env_vars["CACHE_KEY"] = f"{device}-{gos_version}-{ksu_version}-{susfs_version}"
+    env_vars["CACHE_KEY"] = f"{device}-{gos_version}-{ksu_version}-{susfs_version}-{ref_name}"
 
     dt = datetime.datetime.now()
     env_vars["BUILD_DATETIME"] = int(dt.timestamp())
@@ -92,8 +92,8 @@ def main(device: str, repo_name: str, ref_name: str, metadata_output_dir: str):
                 ],
                 "github": [
                     {
-                        "name": "KernelSU-Next",
-                        "repo_name": "KernelSU-Next/KernelSU-Next",
+                        "name": "KernelSU",
+                        "repo_name": "tiann/KernelSU",
                         "ref_name": ksu_version
                     }
                 ]
