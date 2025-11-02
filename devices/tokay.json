@@ -7,7 +7,7 @@
     "image_repo": "https://github.com/GrapheneOS/device_google_caimito-kernels_6.1",
     "manifest_repo": "https://github.com/GrapheneOS/kernel_manifest-6.1.git",
     "version": "6.1",
-    "fetch_command": "git clone https://gitlab.com/grapheneos/kernel_pixel.git -b \"${GRAPHENEOS_VERSION}\" --recurse-submodules kernel",
+    "fetch_command": "git clone https://gitlab.com/grapheneos/kernel_pixel.git -b \"${GRAPHENEOS_VERSION}\" --recurse-submodules --shallow-submodules --depth=1 kernel",
     "build_command": "KLEAF_REPO_MANIFEST=aosp_manifest.xml ./build_caimito.sh --lto=thin"
   },
   "magisk": {

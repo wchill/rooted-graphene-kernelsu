@@ -60,7 +60,8 @@ jobs:
           done
           
           mkdir -p build_output/
-          python3 scripts/generate_env.py "$DEVICE_ID" "${{ github.repository }}" "${{ github.sha }}" build_output >> $GITHUB_ENV
+          export BUILD_METADATA_FILE=$(python3 scripts/generate_env.py "$DEVICE_ID" "${{ github.repository }}" "${{ github.sha }}" build_output)
+          python3 scripts/load_env.py "$BUILD_METADATA_FILE" >> $GITHUB_ENV
           cat $GITHUB_ENV >> .env
           cat .env
       - name: Load kernel from cache

@@ -255,6 +255,12 @@ function downloadAndroidDependencies() {
   if ! ls ".tmp/$OTA_TARGET.zip" >/dev/null 2>&1; then
     curl --fail -sLo ".tmp/$OTA_TARGET.zip" "$OTA_URL"
   fi
+
+  KERNELSU_TARGET="${DEVICE_ID}-ota_update-${OTA_VERSION}.zip"
+  local url="https://github.com/wchill/rooted-graphene-kernelsu/releases/download/${OTA_VERSION}/${KERNELSU_TARGET}"
+  if ! ls ".tmp/${KERNELSU_TARGET}" >/dev/null 2>&1 && [[ "${POTENTIAL_ASSETS['kernelsu']+isset}" ]]; then
+    curl --fail -sLo ".tmp/${KERNELSU_TARGET}" "https://github.com/wchill/rooted-graphene-kernelsu/releases/download/${OTA_VERSION}/${KERNELSU_TARGET}"
+  fi
 }
 
 function findLatestVersion() {
@@ -280,23 +286,6 @@ function findLatestVersion() {
 
 function downloadAvBroot() {
   downloadAndVerifyFromChenxiaolong 'avbroot' "$AVB_ROOT_VERSION"
-}
-
-function downloadAndVerifyKernelSu() {
-  local url="https://github.com/wchill/rooted-graphene-kernelsu/releases/download/${OTA_VERSION}/kernel-${DEVICE_ID}-${OTA_VERSION}.zip"
-  local downloadedZipFile
-  downloadedZipFile="$(mktemp)"
-
-  mkdir -p .tmp
-
-  if ! ls ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}" >/dev/null 2>&1; then
-    curl --fail -sL "${url}" > "${downloadedZipFile}"
-
-    # TODO: Either upload boot.img directly or redo the way files are zipped.
-    mkdir -p ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}"
-    echo N | unzip "${downloadedZipFile}" -d ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}"
-    rm "${downloadedZipFile}"*
-  fi
 }
 
 function downloadAndVerifyFromChenxiaolong() {
@@ -360,19 +349,18 @@ function patchOTAs() {
       local args=()
 
       args+=("--output" "$targetFile")
-      args+=("--input" ".tmp/$OTA_TARGET.zip")
+
+      if [[ "$flavor" == 'kernelsu' ]]; then
+        args+=("--input" ".tmp/${KERNELSU_TARGET}")
+      else
+        args+=("--input" ".tmp/$OTA_TARGET.zip")
+      fi
       args+=("--sign-key-avb" "$KEY_AVB")
       args+=("--sign-key-ota" "$KEY_OTA")
       args+=("--sign-cert-ota" "$CERT_OTA")
       if [[ "$flavor" == 'magisk' ]]; then
         args+=("--patch-arg=--magisk" "--patch-arg" ".tmp/magisk-$MAGISK_VERSION.apk")
         args+=("--patch-arg=--magisk-preinit-device" "--patch-arg" "$MAGISK_PREINIT_DEVICE")
-      elif [[ "$flavor" == 'kernelsu' ]]; then
-        downloadAndVerifyKernelSu
-        args+=("--patch-arg=--prepatched" "--patch-arg" ".tmp/kernel-${DEVICE_ID}-${OTA_VERSION}/boot.img")
-        if [[ "$IGNORE_PREPATCHED_COMPAT" == 'true' ]]; then
-          args+=("--patch-arg=--ignore-prepatched-compat" "--patch-arg=--ignore-prepatched-compat")
-        fi
       fi
 
       # If env vars not set, passphrases will be queried interactively

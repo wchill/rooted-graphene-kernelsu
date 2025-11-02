@@ -100,8 +100,7 @@ def main(device: str, repo_name: str, ref_name: str, metadata_output_dir: str):
             }
         }, f, indent=4)
 
-    for k, v in env_vars.items():
-        print(f"{k}={v}")
+    print(metadata_path)
 
 
 if __name__ == "__main__":

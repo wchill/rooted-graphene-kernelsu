@@ -42,11 +42,11 @@ else
     pushd aosp/ || exit
       if [[ -v KERNEL_IMAGE_REPO ]]; then
         echo "Fetching stock defconfig from ${KERNEL_IMAGE_REPO}..."
-        git clone --depth=1 --branch "${GRAPHENEOS_VERSION}" --single-branch "${KERNEL_IMAGE_REPO}" kernel_image/
-        echo "Extracting kernel image configuration..."
-        lz4 -d kernel_image/grapheneos/Image.lz4 kernel_image/Image
-        ./scripts/extract-ikconfig kernel_image/Image > arch/arm64/configs/stock_defconfig
-        rm -rf kernel_image/
+        # git clone --depth=1 --branch "${GRAPHENEOS_VERSION}" --single-branch "${KERNEL_IMAGE_REPO}" kernel_image/
+        # echo "Extracting kernel image configuration..."
+        # lz4 -d kernel_image/grapheneos/Image.lz4 kernel_image/Image
+        # ./scripts/extract-ikconfig kernel_image/Image > arch/arm64/configs/stock_defconfig
+        # rm -rf kernel_image/
       else
         echo "KERNEL_IMAGE_REPO not set, skipping fetching defconfig."
       fi
@@ -62,7 +62,7 @@ else
         KERNELSU_VERSION=$(($(git rev-list --count HEAD) + 10200))
         echo "Using KernelSU version: ${KERNELSU_VERSION}"
         sed -i '/^ccflags-y += -DKSU_GIT_VERSION=/d' kernel/Makefile
-        sed -i '1s/^/ccflags-y += -DKSU_GIT_VERSION='"${KSU_VERSION}"'\n/' kernel/Makefile
+        sed -i '1s/^/ccflags-y += -DKSU_GIT_VERSION='"${KERNELSU_VERSION}"'\n/' kernel/Makefile
       popd || exit
 
       echo "Fetching SUSFS from branch ${SUSFS_BRANCH}..."
