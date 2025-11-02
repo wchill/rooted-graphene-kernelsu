@@ -1,7 +1,7 @@
 {
   "version": 2,
   "full": {
-    "location_ota": "https://github.com/wchill/rooted-graphene-kernelsu/releases/download/2025102800/bluejay-2025102800-fe133c4-rootless.zip",
-    "location_csig": "https://github.com/wchill/rooted-graphene-kernelsu/releases/download/2025102800/bluejay-2025102800-fe133c4-rootless.zip.csig"
+    "location_ota": "https://github.com/wchill/rooted-graphene-kernelsu/releases/download/2025102800/bluejay-2025102800-b4af947-rootless.zip",
+    "location_csig": "https://github.com/wchill/rooted-graphene-kernelsu/releases/download/2025102800/bluejay-2025102800-b4af947-rootless.zip.csig"
   }
 }
